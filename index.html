@@ -96,7 +96,11 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-gray-600">Total Savings</label>
-            <span id="display-totalSavings" class="text-sm font-bold text-blue-600">£0</span>
+            <input type="text" id="display-totalSavings" value="£0"
+              onfocus="onDisplayFocus('totalSavings', this)"
+              onblur="onDisplayBlur('totalSavings', this)"
+              onkeydown="onDisplayKeydown('totalSavings', this, event)"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-28 cursor-text transition-colors" />
           </div>
           <input type="range" id="slider-totalSavings" min="0" max="500000" step="1000" value="0"
             oninput="onSliderChange('totalSavings', this.value)" />
@@ -109,7 +113,11 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-gray-600">House Price</label>
-            <span id="display-housePrice" class="text-sm font-bold text-blue-600">£0</span>
+            <input type="text" id="display-housePrice" value="£0"
+              onfocus="onDisplayFocus('housePrice', this)"
+              onblur="onDisplayBlur('housePrice', this)"
+              onkeydown="onDisplayKeydown('housePrice', this, event)"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-28 cursor-text transition-colors" />
           </div>
           <input type="range" id="slider-housePrice" min="0" max="1000000" step="5000" value="0"
             oninput="onSliderChange('housePrice', this.value)" />
@@ -122,7 +130,11 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-gray-600">Initial Deposit</label>
-            <span id="display-deposit" class="text-sm font-bold text-blue-600">£0</span>
+            <input type="text" id="display-deposit" value="£0"
+              onfocus="onDisplayFocus('deposit', this)"
+              onblur="onDisplayBlur('deposit', this)"
+              onkeydown="onDisplayKeydown('deposit', this, event)"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-28 cursor-text transition-colors" />
           </div>
           <input type="range" id="slider-deposit" min="0" max="500000" step="1000" value="0"
             oninput="onSliderChange('deposit', this.value)" />
@@ -140,7 +152,11 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-gray-600">Annual Salary</label>
-            <span id="display-salary" class="text-sm font-bold text-blue-600">£0</span>
+            <input type="text" id="display-salary" value="£0"
+              onfocus="onDisplayFocus('salary', this)"
+              onblur="onDisplayBlur('salary', this)"
+              onkeydown="onDisplayKeydown('salary', this, event)"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-28 cursor-text transition-colors" />
           </div>
           <input type="range" id="slider-salary" min="0" max="200000" step="1000" value="0"
             oninput="onSliderChange('salary', this.value)" />
@@ -153,7 +169,11 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-gray-600">Mortgage Interest Rate</label>
-            <span id="display-mortgageRate" class="text-sm font-bold text-blue-600">0.00%</span>
+            <input type="text" id="display-mortgageRate" value="0.00%"
+              onfocus="onDisplayFocus('mortgageRate', this)"
+              onblur="onDisplayBlur('mortgageRate', this)"
+              onkeydown="onDisplayKeydown('mortgageRate', this, event)"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-20 cursor-text transition-colors" />
           </div>
           <input type="range" id="slider-mortgageRate" min="0" max="15" step="0.05" value="0"
             oninput="onSliderChange('mortgageRate', this.value)" />
@@ -166,7 +186,11 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-gray-600">Mortgage Term</label>
-            <span id="display-mortgageTerm" class="text-sm font-bold text-blue-600">0 yrs</span>
+            <input type="text" id="display-mortgageTerm" value="0 yrs"
+              onfocus="onDisplayFocus('mortgageTerm', this)"
+              onblur="onDisplayBlur('mortgageTerm', this)"
+              onkeydown="onDisplayKeydown('mortgageTerm', this, event)"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-20 cursor-text transition-colors" />
           </div>
           <input type="range" id="slider-mortgageTerm" min="0" max="40" step="1" value="0"
             oninput="onSliderChange('mortgageTerm', this.value)" />
@@ -179,7 +203,11 @@
         <div class="space-y-2">
           <div class="flex justify-between items-center">
             <label class="text-sm font-medium text-gray-600">ETF Dividend Yield</label>
-            <span id="display-dividendYield" class="text-sm font-bold text-blue-600">0.00%</span>
+            <input type="text" id="display-dividendYield" value="0.00%"
+              onfocus="onDisplayFocus('dividendYield', this)"
+              onblur="onDisplayBlur('dividendYield', this)"
+              onkeydown="onDisplayKeydown('dividendYield', this, event)"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-20 cursor-text transition-colors" />
           </div>
           <input type="range" id="slider-dividendYield" min="0" max="15" step="0.05" value="0"
             oninput="onSliderChange('dividendYield', this.value)" />
@@ -529,6 +557,19 @@
   ======================================================== -->
   <script>
     // ─────────────────────────────────────────────
+    // SLIDER CONFIG — defines type, min, max for each slider key
+    // ─────────────────────────────────────────────
+    const SLIDER_CONFIG = {
+      totalSavings:  { type: 'currency', min: 0, max: 500000 },
+      housePrice:    { type: 'currency', min: 0, max: 1000000 },
+      deposit:       { type: 'currency', min: 0, max: 500000 },
+      salary:        { type: 'currency', min: 0, max: 200000 },
+      mortgageRate:  { type: 'percent',  min: 0, max: 15 },
+      mortgageTerm:  { type: 'years',    min: 0, max: 40 },
+      dividendYield: { type: 'percent',  min: 0, max: 15 },
+    };
+
+    // ─────────────────────────────────────────────
     // STATE — single source of truth for all inputs
     // Structured for easy migration to React state / Zustand
     // ─────────────────────────────────────────────
@@ -708,19 +749,55 @@
       const value = parseFloat(rawValue);
       state[key] = value;
 
-      // Update the display label for each slider
+      // Update the editable display input (not focused — avoid clobbering typing)
       const displayEl = document.getElementById('display-' + key);
-      if (displayEl) {
-        if (key === 'mortgageRate' || key === 'dividendYield') {
-          displayEl.textContent = fmt.percent(value);
-        } else if (key === 'mortgageTerm') {
-          displayEl.textContent = value + ' yrs';
-        } else {
-          displayEl.textContent = fmt.currency(value);
-        }
+      if (displayEl && document.activeElement !== displayEl) {
+        displayEl.value = formatDisplayValue(key, value);
       }
 
       updateMainResults();
+    }
+
+    // Returns the formatted string shown in the display input when not focused
+    function formatDisplayValue(key, value) {
+      const cfg = SLIDER_CONFIG[key];
+      if (!cfg) return value;
+      if (cfg.type === 'percent') return fmt.percent(value);
+      if (cfg.type === 'years')   return value + ' yrs';
+      return fmt.currency(value);
+    }
+
+    // Strip formatting prefix/suffix to get the raw number for editing
+    function stripDisplayValue(key, displayValue) {
+      const cfg = SLIDER_CONFIG[key];
+      let raw = displayValue.replace(/[£,%]/g, '').replace(/\s*yrs\s*/i, '').replace(/,/g, '').trim();
+      return parseFloat(raw) || 0;
+    }
+
+    function onDisplayFocus(key, el) {
+      // Show raw numeric value so the user can type freely
+      el.value = stripDisplayValue(key, el.value);
+      el.select();
+    }
+
+    function onDisplayBlur(key, el) {
+      const cfg = SLIDER_CONFIG[key];
+      let value = parseFloat(el.value.replace(/[£,%,]/g, '').replace(/\s*yrs\s*/i, '').trim()) || 0;
+      // Clamp to slider bounds
+      value = Math.min(Math.max(value, cfg.min), cfg.max);
+      // Sync slider
+      const slider = document.getElementById('slider-' + key);
+      if (slider) slider.value = value;
+      // Update state + results
+      state[key] = value;
+      el.value = formatDisplayValue(key, value);
+      updateMainResults();
+    }
+
+    function onDisplayKeydown(key, el, event) {
+      if (event.key === 'Enter') {
+        el.blur();
+      }
     }
 
     function onExpenseChange() {
