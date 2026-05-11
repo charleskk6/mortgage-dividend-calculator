@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mortgage + ETF Cash Flow Calculator</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    body { background: #f1f5f9; }
+    input[type="range"] { width: 100%; }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .result {
+      border-left: 5px solid #2563eb;
+    }
+
+    .positive {
+      border-left: 5px solid #16a34a;
+    }
+
+    .negative {
+      border-left: 5px solid #dc2626;
+    }
+
+    .tab-active {
+      background: #2563eb;
+      color: white;
+    }
+  </style>
+</head>
+
+<body class="p-4">
+
+<div class="max-w-5xl mx-auto">
+
+  <h1 class="text-2xl font-bold mb-4">
+    Mortgage + ETF Cash Flow Calculator
+  </h1>
+
+  <div class="flex gap-2 mb-6">
+    <button id="mainTab"
+      class="tab-active px-4 py-2 rounded-xl font-semibold">
+      Main Calculator
+    </button>
+
+    <button id="cashFlowTab"
+      class="bg-white px-4 py-2 rounded-xl font-semibold">
+      Cash Flow Details
+    </button>
+  </div>
+
+  <!-- MAIN PAGE -->
+  <section id="mainPage">
+
+    <div class="grid md:grid-cols-2 gap-4">
+
+      <div class="card">
+        <label class="font-semibold">Total Saving</label>
+        <div id="savingValue" class="text-blue-600 font-bold mb-2"></div>
+        <input type="range"
+          id="saving"
+          min="0"
+          max="1000000"
+          step="10000"
+          value="0">
+      </div>
+
+      <div class="card">
+        <label class="font-semibold">House Price</label>
+        <div id="houseValue" class="text-blue-600 font-bold mb-2"></div>
+        <input type="range"
+          id="house"
+          min="0"
+          max="1000000"
+          step="10000"
+          value="0">
+      </div>
+
+      <div class="card">
+        <label class="font-semibold">Initial Deposit</label>
+        <div id="depositValue" class="text-blue-600 font-bold mb-2"></div>
+        <input type="range"
+          id="deposit"
+          min="0"
+          max="1000000"
+          step="5000"
+          value="0">
+      </div>
+
+      <div class="card">
+        <label class="font-semibold">Annual Salary</label>
+        <div id="salaryValue" class="text-blue-600 font-bold mb-2"></div>
+        <input type="range"
+          id="salary"
+          min="0"
+          max="200000"
+          step="5000"
+          value="0">
+      </div>
+
+      <div class="card">
+        <label class="font-semibold">Mortgage Rate</label>
+        <div id="rateValue" class="text-blue-600 font-bold mb-2"></div>
+        <input type="range"
+          id="rate"
+          min="0"
+          max="8"
+          step="0.1"
+          value="0">
+      </div>
+
+      <div class="card">
+        <label class="font-semibold">Mortgage Years</label>
+        <div id="yearValue" class="text-blue-600 font-bold mb-2"></div>
+        <input type="range"
+          id="years"
+          min="0"
+          max="40"
+          step="1"
+          value="0">
+      </div>
+
+      <div class="card">
+        <label class="font-semibold">Dividend Yield</label>
+        <div id="yieldValue" class="text-blue-600 font-bold mb-2"></div>
+        <input type="range"
+          id="yield"
+          min="0"
+          max="8"
+          step="0.25"
+          value="0">
+      </div>
+
+    </div>
+
+    <button id="loadScenario"
+      class="mt-5 px-5 py-3 rounded-xl bg-slate-900 text-white font-semibold">
+      Load Example Scenario
+    </button>
+
+    <div class="grid md:grid-cols-3 gap-4 mt-6">
+
+      <div class="card result">
+        <div class="text-gray-500">Mortgage Amount</div>
+        <div id="mortgageAmount" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card result">
+        <div class="text-gray-500">Monthly Mortgage</div>
+        <div id="monthlyMortgage" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card result">
+        <div class="text-gray-500">Remaining Investment</div>
+        <div id="remainingSaving" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card">
+        <div class="text-gray-500">Monthly Dividend</div>
+        <div id="monthlyDividend" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card">
+        <div class="text-gray-500">Monthly Net Salary</div>
+        <div id="monthlySalary" class="text-2xl font-bold"></div>
+      </div>
+
+      <div id="cashFlowCard" class="card">
+        <div class="text-gray-500">Net Monthly Cash Flow</div>
+        <div id="cashFlow" class="text-2xl font-bold"></div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- CASH FLOW PAGE -->
+  <section id="cashFlowPage" class="hidden">
+
+    <div class="card mb-5">
+      <h2 class="text-xl font-bold mb-2">
+        Editable Monthly Expenses
+      </h2>
+
+      <p class="text-gray-600">
+        Change the values to simulate real monthly cash flow.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+
+      <div class="card">
+        <label>Council Tax</label>
+        <input id="councilTax"
+          type="number"
+          value="220"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+      <div class="card">
+        <label>Utilities</label>
+        <input id="utilities"
+          type="number"
+          value="250"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+      <div class="card">
+        <label>Insurance</label>
+        <input id="insurance"
+          type="number"
+          value="30"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+      <div class="card">
+        <label>Maintenance</label>
+        <input id="maintenance"
+          type="number"
+          value="200"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+      <div class="card">
+        <label>Internet</label>
+        <input id="internet"
+          type="number"
+          value="60"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+      <div class="card">
+        <label>Food</label>
+        <input id="food"
+          type="number"
+          value="600"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+      <div class="card">
+        <label>Transport</label>
+        <input id="car"
+          type="number"
+          value="400"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+      <div class="card">
+        <label>Family / Other</label>
+        <input id="family"
+          type="number"
+          value="700"
+          class="w-full border rounded-xl p-3 mt-2">
+      </div>
+
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4 mt-6">
+
+      <div class="card result">
+        <div class="text-gray-500">Salary Income</div>
+        <div id="detailSalary" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card result">
+        <div class="text-gray-500">Dividend Income</div>
+        <div id="detailDividend" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card result">
+        <div class="text-gray-500">Total Income</div>
+        <div id="detailTotalIncome" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card negative">
+        <div class="text-gray-500">Mortgage</div>
+        <div id="detailMortgage" class="text-2xl font-bold"></div>
+      </div>
+
+      <div class="card negative">
+        <div class="text-gray-500">Expenses</div>
+        <div id="detailExpense" class="text-2xl font-bold"></div>
+      </div>
+
+      <div id="detailCashFlowCard" class="card">
+        <div class="text-gray-500">Final Cash Flow</div>
+        <div id="detailCashFlow" class="text-2xl font-bold"></div>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+<script>
+
+const sliderIds = [
+  "saving",
+  "house",
+  "deposit",
+  "salary",
+  "rate",
+  "years",
+  "yield"
+];
+
+const expenseIds = [
+  "councilTax",
+  "utilities",
+  "insurance",
+  "maintenance",
+  "internet",
+  "food",
+  "car",
+  "family"
+];
+
+sliderIds.forEach(id => {
+  document.getElementById(id)
+    .addEventListener("input", calculate);
+});
+
+expenseIds.forEach(id => {
+  document.getElementById(id)
+    .addEventListener("input", calculate);
+});
+
+document.getElementById("mainTab")
+  .addEventListener("click", () => {
+    showPage("main");
+});
+
+document.getElementById("cashFlowTab")
+  .addEventListener("click", () => {
+    showPage("cashflow");
+});
+
+document.getElementById("loadScenario")
+  .addEventListener("click", () => {
+
+    document.getElementById("saving").value = 400000;
+    document.getElementById("house").value = 400000;
+    document.getElementById("deposit").value = 150000;
+    document.getElementById("salary").value = 90000;
+    document.getElementById("rate").value = 4.6;
+    document.getElementById("years").value = 30;
+    document.getElementById("yield").value = 4;
+
+    calculate();
+});
+
+function showPage(page) {
+
+  const mainPage =
+    document.getElementById("mainPage");
+
+  const cashFlowPage =
+    document.getElementById("cashFlowPage");
+
+  if (page === "main") {
+    mainPage.classList.remove("hidden");
+    cashFlowPage.classList.add("hidden");
+  } else {
+    mainPage.classList.add("hidden");
+    cashFlowPage.classList.remove("hidden");
+  }
+}
+
+function money(v) {
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    maximumFractionDigits: 0
+  }).format(v || 0);
+}
+
+function get(id) {
+  return Number(document.getElementById(id).value) || 0;
+}
+
+function calculate() {
+
+  const saving = get("saving");
+  const house = get("house");
+  const deposit = get("deposit");
+  const salary = get("salary");
+  const rate = get("rate");
+  const years = get("years");
+  const dividendYield = get("yield");
+
+  document.getElementById("savingValue").innerText =
+    money(saving);
+
+  document.getElementById("houseValue").innerText =
+    money(house);
+
+  document.getElementById("depositValue").innerText =
+    money(deposit);
+
+  document.getElementById("salaryValue").innerText =
+    money(salary);
+
+  document.getElementById("rateValue").innerText =
+    rate.toFixed(1) + "%";
+
+  document.getElementById("yearValue").innerText =
+    years + " years";
+
+  document.getElementById("yieldValue").innerText =
+    dividendYield.toFixed(2) + "%";
+
+  const mortgageAmount =
+    Math.max(house - deposit, 0);
+
+  const remainingSaving =
+    Math.max(saving - deposit, 0);
+
+  const monthlyRate =
+    rate / 100 / 12;
+
+  const totalMonths =
+    years * 12;
+
+  let monthlyMortgage = 0;
+
+  if (mortgageAmount > 0 && years > 0) {
+
+    if (monthlyRate === 0) {
+
+      monthlyMortgage =
+        mortgageAmount / totalMonths;
+
+    } else {
+
+      monthlyMortgage =
+        mortgageAmount *
+        (monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) /
+        (Math.pow(1 + monthlyRate, totalMonths) - 1);
+    }
+  }
+
+  const monthlyDividend =
+    remainingSaving *
+    (dividendYield / 100) / 12;
+
+  const monthlySalary =
+    salary * 0.68 / 12;
+
+  const totalExpense =
+    expenseIds.reduce((sum, id) => {
+      return sum + get(id);
+    }, 0);
+
+  const totalIncome =
+    monthlySalary + monthlyDividend;
+
+  const cashFlow =
+    totalIncome -
+    monthlyMortgage -
+    totalExpense;
+
+  document.getElementById("mortgageAmount").innerText =
+    money(mortgageAmount);
+
+  document.getElementById("monthlyMortgage").innerText =
+    money(monthlyMortgage);
+
+  document.getElementById("remainingSaving").innerText =
+    money(remainingSaving);
+
+  document.getElementById("monthlyDividend").innerText =
+    money(monthlyDividend);
+
+  document.getElementById("monthlySalary").innerText =
+    money(monthlySalary);
+
+  document.getElementById("cashFlow").innerText =
+    money(cashFlow);
+
+  document.getElementById("detailSalary").innerText =
+    money(monthlySalary);
+
+  document.getElementById("detailDividend").innerText =
+    money(monthlyDividend);
+
+  document.getElementById("detailTotalIncome").innerText =
+    money(totalIncome);
+
+  document.getElementById("detailMortgage").innerText =
+    money(monthlyMortgage);
+
+  document.getElementById("detailExpense").innerText =
+    money(totalExpense);
+
+  document.getElementById("detailCashFlow").innerText =
+    money(cashFlow);
+
+  setCashFlowCard("cashFlowCard", cashFlow);
+  setCashFlowCard("detailCashFlowCard", cashFlow);
+}
+
+function setCashFlowCard(id, cashFlow) {
+
+  const card =
+    document.getElementById(id);
+
+  card.classList.remove("positive");
+  card.classList.remove("negative");
+
+  if (cashFlow >= 0) {
+    card.classList.add("positive");
+  } else {
+    card.classList.add("negative");
+  }
+}
+
+calculate();
+
+</script>
+
+</body>
+</html>
