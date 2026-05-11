@@ -53,6 +53,7 @@
         <p class="text-xs text-gray-500">Mortgage &amp; ETF Dividend Calculator</p>
       </div>
       <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Educational</span>
+      <span id="save-indicator" style="opacity:0;transition:opacity 0.4s ease" class="text-xs text-green-600 font-medium ml-1">Saved ✓</span>
     </div>
 
     <!-- Tabs -->
@@ -80,8 +81,12 @@
     ======================================================== -->
     <div id="tab-content-calculator" class="tab-content active space-y-6">
 
-      <!-- Load Example Button -->
-      <div class="flex justify-end">
+      <!-- Load Example / Clear Buttons -->
+      <div class="flex justify-end gap-2">
+        <button
+          onclick="clearStorage()"
+          class="text-sm font-medium px-4 py-2 rounded-lg border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors"
+        >Clear Saved Data</button>
         <button
           onclick="loadExample()"
           class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition-colors"
@@ -901,6 +906,7 @@
       }
 
       updateMainResults();
+      scheduleSave();
     }
 
     // Returns the formatted string shown in the display input when not focused
@@ -937,6 +943,7 @@
       state[key] = value;
       el.value = formatDisplayValue(key, value);
       updateMainResults();
+      scheduleSave();
     }
 
     function onDisplayKeydown(key, el, event) {
@@ -947,6 +954,7 @@
 
     function onExpenseChange() {
       updateCashFlowDetails();
+      scheduleSave();
     }
 
     // ─────────────────────────────────────────────
@@ -1095,10 +1103,153 @@
     }
 
     // ─────────────────────────────────────────────
+    // LOCAL STORAGE PERSISTENCE
+    // ─────────────────────────────────────────────
+    const STORAGE_KEY = 'uk-finance-sim-v1';
+    let _saveTimer = null;
+
+    // Debounce saves so rapid slider drags don't hammer storage
+    function scheduleSave() {
+      clearTimeout(_saveTimer);
+      _saveTimer = setTimeout(saveToStorage, 400);
+    }
+
+    function saveToStorage() {
+      try {
+        const data = {
+          sliders: {
+            totalSavings:  state.totalSavings,
+            housePrice:    state.housePrice,
+            deposit:       state.deposit,
+            salary:        state.salary,
+            mortgageRate:  state.mortgageRate,
+            mortgageTerm:  state.mortgageTerm,
+            dividendYield: state.dividendYield,
+          },
+          expenses: {
+            councilTax:  numVal('exp-councilTax'),
+            utilities:   numVal('exp-utilities'),
+            insurance:   numVal('exp-insurance'),
+            maintenance: numVal('exp-maintenance'),
+            internet:    numVal('exp-internet'),
+            food:        numVal('exp-food'),
+            transport:   numVal('exp-transport'),
+            misc:        numVal('exp-misc'),
+          },
+          allocs: {
+            emergency:   numVal('alloc-emergency'),
+            investments: numVal('alloc-investments'),
+            overpayment: numVal('alloc-overpayment'),
+          },
+          customItems: {
+            expenses:     getCustomItemsData('custom-items-expenses'),
+            cashReserve:  getCustomItemsData('custom-items-cash-reserve'),
+            monthlyAlloc: getCustomItemsData('custom-items-monthly-alloc'),
+          },
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        showSaveIndicator();
+      } catch (_) {
+        // localStorage unavailable (private mode / storage full) — fail silently
+      }
+    }
+
+    function loadFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+
+        // Restore sliders
+        if (data.sliders) {
+          Object.entries(data.sliders).forEach(([key, value]) => {
+            const slider = document.getElementById('slider-' + key);
+            if (slider) {
+              slider.value = value;
+              onSliderChange(key, value);
+            }
+          });
+        }
+
+        // Restore static expense inputs
+        if (data.expenses) {
+          const map = { councilTax:'exp-councilTax', utilities:'exp-utilities',
+            insurance:'exp-insurance', maintenance:'exp-maintenance',
+            internet:'exp-internet', food:'exp-food',
+            transport:'exp-transport', misc:'exp-misc' };
+          Object.entries(data.expenses).forEach(([key, val]) => {
+            const el = document.getElementById(map[key]);
+            if (el) el.value = val;
+          });
+        }
+
+        // Restore static allocation inputs
+        if (data.allocs) {
+          const map = { emergency:'alloc-emergency', investments:'alloc-investments', overpayment:'alloc-overpayment' };
+          Object.entries(data.allocs).forEach(([key, val]) => {
+            const el = document.getElementById(map[key]);
+            if (el) el.value = val;
+          });
+        }
+
+        // Restore custom items
+        if (data.customItems) {
+          restoreCustomItems('custom-items-expenses',     'expense',       data.customItems.expenses     || []);
+          restoreCustomItems('custom-items-cash-reserve', 'fixed',         data.customItems.cashReserve  || []);
+          restoreCustomItems('custom-items-monthly-alloc','monthly-alloc', data.customItems.monthlyAlloc || []);
+        }
+      } catch (_) {
+        // Corrupted storage — ignore and start fresh
+      }
+    }
+
+    function getCustomItemsData(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return [];
+      const items = [];
+      container.querySelectorAll('.custom-item-row').forEach(row => {
+        const name   = row.querySelector('.custom-item-name')?.value  || '';
+        const amount = row.querySelector('.custom-item-amount')?.value || '0';
+        items.push({ name, amount });
+      });
+      return items;
+    }
+
+    function restoreCustomItems(containerId, type, items) {
+      items.forEach(item => {
+        addCustomItem(containerId, type);
+        const container = document.getElementById(containerId);
+        const rows = container.querySelectorAll('.custom-item-row');
+        const last = rows[rows.length - 1];
+        if (last) {
+          const nameEl = last.querySelector('.custom-item-name');
+          const amtEl  = last.querySelector('.custom-item-amount');
+          if (nameEl) nameEl.value = item.name;
+          if (amtEl)  amtEl.value  = item.amount;
+        }
+      });
+    }
+
+    function clearStorage() {
+      if (!confirm('Clear all saved data and reset to zero?')) return;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
+      location.reload();
+    }
+
+    function showSaveIndicator() {
+      const el = document.getElementById('save-indicator');
+      if (!el) return;
+      el.style.opacity = '1';
+      clearTimeout(el._hideTimer);
+      el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 1500);
+    }
+
+    // ─────────────────────────────────────────────
     // INIT — run once on page load
     // ─────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
-      updateMainResults();
+      loadFromStorage();   // restore before first render
+      updateMainResults(); // recalculate with restored values
     });
   </script>
 </body>
