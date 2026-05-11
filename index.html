@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UK Mortgage & Dividend Cash Flow Simulator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom range slider styling for cross-browser consistency */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #e2e8f0;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    /* Tab transition */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    /* Card hover */
+    .result-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .result-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.12); }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+
+  <!-- ===== HEADER ===== -->
+  <header class="bg-white shadow-sm sticky top-0 z-50">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div>
+        <h1 class="text-lg font-bold text-gray-800 leading-tight">UK Finance Simulator</h1>
+        <p class="text-xs text-gray-500">Mortgage &amp; ETF Dividend Calculator</p>
+      </div>
+      <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Educational</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="max-w-4xl mx-auto px-4 border-t border-gray-100">
+      <div class="flex space-x-1">
+        <button
+          id="tab-calculator"
+          onclick="switchTab('calculator')"
+          class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-blue-500 text-blue-600 transition-colors"
+        >Main Calculator</button>
+        <button
+          id="tab-cashflow"
+          onclick="switchTab('cashflow')"
+          class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors"
+        >Cash Flow Details</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="max-w-4xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- ========================================================
+         TAB 1: MAIN CALCULATOR
+    ======================================================== -->
+    <div id="tab-content-calculator" class="tab-content active space-y-6">
+
+      <!-- Load Example Button -->
+      <div class="flex justify-end">
+        <button
+          onclick="loadExample()"
+          class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition-colors"
+        >Load Example Scenario</button>
+      </div>
+
+      <!-- ---- INPUT CARD: Savings & Property ---- -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-5">
+        <h2 class="text-base font-semibold text-gray-700 border-b pb-2">Savings &amp; Property</h2>
+
+        <!-- Total Savings -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">Total Savings</label>
+            <span id="display-totalSavings" class="text-sm font-bold text-blue-600">£0</span>
+          </div>
+          <input type="range" id="slider-totalSavings" min="0" max="500000" step="1000" value="0"
+            oninput="onSliderChange('totalSavings', this.value)" />
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>£0</span><span>£500,000</span>
+          </div>
+        </div>
+
+        <!-- House Price -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">House Price</label>
+            <span id="display-housePrice" class="text-sm font-bold text-blue-600">£0</span>
+          </div>
+          <input type="range" id="slider-housePrice" min="0" max="1000000" step="5000" value="0"
+            oninput="onSliderChange('housePrice', this.value)" />
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>£0</span><span>£1,000,000</span>
+          </div>
+        </div>
+
+        <!-- Initial Deposit -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">Initial Deposit</label>
+            <span id="display-deposit" class="text-sm font-bold text-blue-600">£0</span>
+          </div>
+          <input type="range" id="slider-deposit" min="0" max="500000" step="1000" value="0"
+            oninput="onSliderChange('deposit', this.value)" />
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>£0</span><span>£500,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- INPUT CARD: Income & Mortgage ---- -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-5">
+        <h2 class="text-base font-semibold text-gray-700 border-b pb-2">Income &amp; Mortgage</h2>
+
+        <!-- Annual Salary -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">Annual Salary</label>
+            <span id="display-salary" class="text-sm font-bold text-blue-600">£0</span>
+          </div>
+          <input type="range" id="slider-salary" min="0" max="200000" step="1000" value="0"
+            oninput="onSliderChange('salary', this.value)" />
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>£0</span><span>£200,000</span>
+          </div>
+        </div>
+
+        <!-- Mortgage Interest Rate -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">Mortgage Interest Rate</label>
+            <span id="display-mortgageRate" class="text-sm font-bold text-blue-600">0.00%</span>
+          </div>
+          <input type="range" id="slider-mortgageRate" min="0" max="15" step="0.05" value="0"
+            oninput="onSliderChange('mortgageRate', this.value)" />
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>0%</span><span>15%</span>
+          </div>
+        </div>
+
+        <!-- Mortgage Term -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">Mortgage Term</label>
+            <span id="display-mortgageTerm" class="text-sm font-bold text-blue-600">0 yrs</span>
+          </div>
+          <input type="range" id="slider-mortgageTerm" min="0" max="40" step="1" value="0"
+            oninput="onSliderChange('mortgageTerm', this.value)" />
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>0 yrs</span><span>40 yrs</span>
+          </div>
+        </div>
+
+        <!-- Dividend Yield -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">ETF Dividend Yield</label>
+            <span id="display-dividendYield" class="text-sm font-bold text-blue-600">0.00%</span>
+          </div>
+          <input type="range" id="slider-dividendYield" min="0" max="15" step="0.05" value="0"
+            oninput="onSliderChange('dividendYield', this.value)" />
+          <div class="flex justify-between text-xs text-gray-400">
+            <span>0%</span><span>15%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- RESULTS: Mortgage ---- -->
+      <div class="bg-blue-50 rounded-2xl border border-blue-200 p-5 space-y-3">
+        <h2 class="text-base font-semibold text-blue-700 border-b border-blue-200 pb-2">Mortgage Overview</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="result-card bg-white rounded-xl p-4 border border-blue-100">
+            <p class="text-xs text-gray-500 mb-1">Mortgage Amount</p>
+            <p id="result-mortgageAmount" class="text-lg font-bold text-blue-700">£0</p>
+          </div>
+          <div class="result-card bg-white rounded-xl p-4 border border-blue-100">
+            <p class="text-xs text-gray-500 mb-1">Monthly Repayment</p>
+            <p id="result-monthlyRepayment" class="text-lg font-bold text-blue-700">£0</p>
+          </div>
+          <div class="result-card bg-white rounded-xl p-4 border border-blue-100">
+            <p class="text-xs text-gray-500 mb-1">LTV Ratio</p>
+            <p id="result-ltv" class="text-lg font-bold text-blue-700">0%</p>
+          </div>
+          <div class="result-card bg-white rounded-xl p-4 border border-blue-100">
+            <p class="text-xs text-gray-500 mb-1">Total Interest Paid</p>
+            <p id="result-totalInterest" class="text-lg font-bold text-blue-700">£0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ---- RESULTS: Income & Investment ---- -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3">
+        <h2 class="text-base font-semibold text-gray-700 border-b pb-2">Income &amp; Investment</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="result-card bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <p class="text-xs text-gray-500 mb-1">Remaining Investment</p>
+            <p id="result-remainingInvestment" class="text-lg font-bold text-gray-800">£0</p>
+          </div>
+          <div class="result-card bg-green-50 rounded-xl p-4 border border-green-100">
+            <p class="text-xs text-gray-500 mb-1">Monthly Dividend</p>
+            <p id="result-monthlyDividend" class="text-lg font-bold text-green-700">£0</p>
+          </div>
+          <div class="result-card bg-gray-50 rounded-xl p-4 border border-gray-100">
+            <p class="text-xs text-gray-500 mb-1">Est. Take-Home (mo.)</p>
+            <p id="result-takeHome" class="text-lg font-bold text-gray-800">£0</p>
+          </div>
+          <div id="card-netCashFlow" class="result-card rounded-xl p-4 border bg-gray-50 border-gray-100">
+            <p class="text-xs text-gray-500 mb-1">Net Monthly Cash Flow</p>
+            <p id="result-netCashFlow" class="text-lg font-bold text-gray-800">£0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula Explanation -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <button
+          onclick="toggleSection('formula-section')"
+          class="w-full flex justify-between items-center text-left"
+        >
+          <h2 class="text-base font-semibold text-gray-700">Formula Explanation</h2>
+          <span id="formula-toggle-icon" class="text-gray-400 text-lg">▼</span>
+        </button>
+        <div id="formula-section" class="hidden mt-4 space-y-4 text-sm text-gray-600">
+          <div>
+            <h3 class="font-semibold text-gray-700 mb-1">UK Repayment Mortgage</h3>
+            <div class="bg-gray-50 rounded-lg p-3 font-mono text-xs">
+              M = P × [ r(1+r)^n ] / [ (1+r)^n − 1 ]
+            </div>
+            <ul class="mt-2 space-y-1 text-xs">
+              <li><strong>M</strong> = Monthly repayment</li>
+              <li><strong>P</strong> = Principal (house price − deposit)</li>
+              <li><strong>r</strong> = Monthly interest rate (annual rate ÷ 12 ÷ 100)</li>
+              <li><strong>n</strong> = Total months (years × 12)</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-700 mb-1">UK Take-Home Estimate</h3>
+            <div class="bg-gray-50 rounded-lg p-3 font-mono text-xs">
+              Monthly take-home = Annual salary × 0.68 ÷ 12
+            </div>
+            <p class="text-xs mt-2">Approximates income after 20% basic-rate Income Tax and ~12% National Insurance for typical earners. For higher earners, actual take-home will differ.</p>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-700 mb-1">Dividend Income</h3>
+            <div class="bg-gray-50 rounded-lg p-3 font-mono text-xs">
+              Monthly dividend = (Savings − Deposit) × (Yield% ÷ 100) ÷ 12
+            </div>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-700 mb-1">Net Monthly Cash Flow</h3>
+            <div class="bg-gray-50 rounded-lg p-3 font-mono text-xs">
+              Net = Take-home + Dividends − Mortgage repayment
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         TAB 2: CASH FLOW DETAILS
+    ======================================================== -->
+    <div id="tab-content-cashflow" class="tab-content space-y-6">
+
+      <!-- Summary Banner -->
+      <div id="cf-summary-banner" class="rounded-2xl p-5 border-2 bg-gray-50 border-gray-200">
+        <h2 class="text-base font-semibold text-gray-700 mb-3">Monthly Cash Flow Summary</h2>
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div class="text-center">
+            <p class="text-xs text-gray-500 mb-1">Total Income</p>
+            <p id="cf-totalIncome" class="text-xl font-bold text-green-600">£0</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xs text-gray-500 mb-1">Total Expenses</p>
+            <p id="cf-totalExpenses" class="text-xl font-bold text-red-500">£0</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xs text-gray-500 mb-1">Mortgage</p>
+            <p id="cf-mortgagePayment" class="text-xl font-bold text-blue-600">£0</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xs text-gray-500 mb-1">Final Cash Flow</p>
+            <p id="cf-finalCashFlow" class="text-xl font-bold text-gray-800">£0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Expenses -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <h2 class="text-base font-semibold text-gray-700 border-b pb-2 mb-4">Monthly Expenses</h2>
+        <div class="space-y-3">
+          <!-- Each expense: label + £ input -->
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Council Tax</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-councilTax" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Utilities</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-utilities" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Insurance</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-insurance" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Maintenance Reserve</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-maintenance" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Internet / Mobile</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-internet" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Food / Grocery</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-food" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Transport / Car</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-transport" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Family / Miscellaneous</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="exp-misc" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asset Allocation -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <h2 class="text-base font-semibold text-gray-700 border-b pb-2 mb-4">Asset Allocation</h2>
+        <p class="text-xs text-gray-400 mb-3">Monthly amounts set aside from cash flow</p>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Emergency Cash</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="alloc-emergency" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Other Investments</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="alloc-investments" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <label class="text-sm text-gray-600 flex-1">Mortgage Overpayment</label>
+            <div class="flex items-center">
+              <span class="text-sm text-gray-400 mr-1">£</span>
+              <input type="number" id="alloc-overpayment" min="0" value="0" placeholder="0"
+                oninput="onExpenseChange()"
+                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expense Breakdown -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <h2 class="text-base font-semibold text-gray-700 border-b pb-2 mb-4">Full Monthly Breakdown</h2>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Take-Home Salary</span>
+            <span id="cf-b-salary" class="font-medium text-green-600">+ £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">ETF Dividends</span>
+            <span id="cf-b-dividends" class="font-medium text-green-600">+ £0</span>
+          </div>
+          <div class="border-t border-dashed my-1"></div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Mortgage Repayment</span>
+            <span id="cf-b-mortgage" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Council Tax</span>
+            <span id="cf-b-councilTax" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Utilities</span>
+            <span id="cf-b-utilities" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Insurance</span>
+            <span id="cf-b-insurance" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Maintenance Reserve</span>
+            <span id="cf-b-maintenance" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Internet / Mobile</span>
+            <span id="cf-b-internet" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Food / Grocery</span>
+            <span id="cf-b-food" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Transport / Car</span>
+            <span id="cf-b-transport" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Family / Miscellaneous</span>
+            <span id="cf-b-misc" class="font-medium text-red-500">− £0</span>
+          </div>
+          <div class="border-t border-dashed my-1"></div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Emergency Cash (set aside)</span>
+            <span id="cf-b-emergency" class="font-medium text-orange-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Other Investments</span>
+            <span id="cf-b-investments" class="font-medium text-orange-500">− £0</span>
+          </div>
+          <div class="flex justify-between py-1">
+            <span class="text-gray-500">Mortgage Overpayment</span>
+            <span id="cf-b-overpayment" class="font-medium text-orange-500">− £0</span>
+          </div>
+          <div class="border-t border-gray-300 my-2"></div>
+          <div class="flex justify-between py-1 font-bold text-base">
+            <span class="text-gray-700">Final Cash Flow</span>
+            <span id="cf-b-final" class="text-gray-800">£0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================
+         DISCLAIMER (shown on both tabs)
+    ======================================================== -->
+    <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+      <button
+        onclick="toggleSection('disclaimer-section')"
+        class="w-full flex justify-between items-center text-left"
+      >
+        <h2 class="text-sm font-semibold text-amber-800">⚠ Disclaimer &amp; Important Notes</h2>
+        <span id="disclaimer-toggle-icon" class="text-amber-600 text-lg">▼</span>
+      </button>
+      <div id="disclaimer-section" class="hidden mt-3 text-xs text-amber-700 space-y-2 leading-relaxed">
+        <p><strong>Educational purposes only.</strong> This calculator is provided for illustrative and educational purposes. It does not constitute financial advice.</p>
+        <p><strong>Not financial advice.</strong> The outputs are estimates based on simplified models. Always consult a qualified independent financial adviser (IFA), mortgage broker, and/or tax professional before making any financial decisions.</p>
+        <p><strong>Investment risk.</strong> Past performance is not a guide to future performance. The value of investments, including ETFs, can fall as well as rise and you may get back less than you invest.</p>
+        <p><strong>Mortgage estimates.</strong> Actual mortgage repayments, eligibility, and terms will vary based on lender criteria, your credit history, and prevailing rates. Consult a regulated mortgage broker.</p>
+        <p><strong>Tax estimates.</strong> The take-home pay estimate uses a simplified 32% effective deduction rate and does not account for personal allowance variations, pension contributions, student loan repayments, or higher/additional rate tax bands. UK tax rules change and differ by individual circumstances.</p>
+        <p><strong>Consult professionals.</strong> Before proceeding with any mortgage, investment, or major financial decision, please seek advice from regulated professionals including FCA-authorised advisers.</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-gray-400 pb-8 space-y-1">
+      <p>UK Mortgage &amp; ETF Dividend Cash Flow Simulator</p>
+      <p>Built for educational purposes only · Not financial advice</p>
+      <p class="text-gray-300">v1.0 · 2025</p>
+    </footer>
+
+  </main>
+
+  <!-- ========================================================
+       JAVASCRIPT
+  ======================================================== -->
+  <script>
+    // ─────────────────────────────────────────────
+    // STATE — single source of truth for all inputs
+    // Structured for easy migration to React state / Zustand
+    // ─────────────────────────────────────────────
+    const state = {
+      // Main calculator inputs
+      totalSavings: 0,
+      housePrice: 0,
+      deposit: 0,
+      salary: 0,
+      mortgageRate: 0,
+      mortgageTerm: 0,
+      dividendYield: 0,
+
+      // Derived outputs (populated by calculate())
+      mortgageAmount: 0,
+      monthlyRepayment: 0,
+      remainingInvestment: 0,
+      monthlyDividend: 0,
+      monthlyTakeHome: 0,
+      netCashFlow: 0,
+    };
+
+    // ─────────────────────────────────────────────
+    // FORMATTER — consistent UK currency/percent display
+    // ─────────────────────────────────────────────
+    const fmt = {
+      currency: (v) => '£' + Math.round(v).toLocaleString('en-GB'),
+      currencyDec: (v) => '£' + v.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+      percent: (v) => parseFloat(v).toFixed(2) + '%',
+    };
+
+    // ─────────────────────────────────────────────
+    // CORE CALCULATION FUNCTIONS
+    // ─────────────────────────────────────────────
+
+    /**
+     * UK standard capital repayment mortgage formula:
+     *   M = P × [ r(1+r)^n ] / [ (1+r)^n − 1 ]
+     */
+    function calcMonthlyRepayment(principal, annualRatePercent, termYears) {
+      if (principal <= 0 || termYears <= 0) return 0;
+      // Handle 0% interest (interest-free / edge case)
+      if (annualRatePercent === 0) return principal / (termYears * 12);
+
+      const r = annualRatePercent / 100 / 12;   // monthly interest rate
+      const n = termYears * 12;                  // total number of months
+      const factor = Math.pow(1 + r, n);
+      return principal * (r * factor) / (factor - 1);
+    }
+
+    /**
+     * Simplified UK take-home salary estimate.
+     * Applies effective 32% deduction (approx 20% IT + 12% NI).
+     */
+    function calcMonthlyTakeHome(annualSalary) {
+      return (annualSalary * 0.68) / 12;
+    }
+
+    /**
+     * Monthly dividend income from remaining invested capital.
+     */
+    function calcMonthlyDividend(investedAmount, annualYieldPercent) {
+      if (investedAmount <= 0 || annualYieldPercent <= 0) return 0;
+      return (investedAmount * (annualYieldPercent / 100)) / 12;
+    }
+
+    /**
+     * Run all calculations and update state.
+     */
+    function calculate() {
+      const { totalSavings, housePrice, deposit, salary, mortgageRate, mortgageTerm, dividendYield } = state;
+
+      state.mortgageAmount       = Math.max(0, housePrice - deposit);
+      state.monthlyRepayment     = calcMonthlyRepayment(state.mortgageAmount, mortgageRate, mortgageTerm);
+      state.remainingInvestment  = Math.max(0, totalSavings - deposit);
+      state.monthlyDividend      = calcMonthlyDividend(state.remainingInvestment, dividendYield);
+      state.monthlyTakeHome      = calcMonthlyTakeHome(salary);
+      state.netCashFlow          = state.monthlyTakeHome + state.monthlyDividend - state.monthlyRepayment;
+    }
+
+    // ─────────────────────────────────────────────
+    // DOM UPDATERS
+    // ─────────────────────────────────────────────
+
+    function updateMainResults() {
+      calculate();
+
+      // Mortgage section
+      const ltv = state.housePrice > 0 ? ((state.mortgageAmount / state.housePrice) * 100).toFixed(1) + '%' : '0%';
+      const totalInterest = state.mortgageAmount > 0
+        ? Math.max(0, state.monthlyRepayment * state.mortgageTerm * 12 - state.mortgageAmount)
+        : 0;
+
+      setText('result-mortgageAmount',    fmt.currency(state.mortgageAmount));
+      setText('result-monthlyRepayment',  fmt.currency(state.monthlyRepayment));
+      setText('result-ltv',               ltv);
+      setText('result-totalInterest',     fmt.currency(totalInterest));
+
+      // Income & investment section
+      setText('result-remainingInvestment', fmt.currency(state.remainingInvestment));
+      setText('result-monthlyDividend',     fmt.currency(state.monthlyDividend));
+      setText('result-takeHome',            fmt.currency(state.monthlyTakeHome));
+      setText('result-netCashFlow',         fmt.currency(state.netCashFlow));
+
+      // Colour the net cash flow card
+      colourCashFlowCard('card-netCashFlow', 'result-netCashFlow', state.netCashFlow);
+
+      // Also keep Cash Flow Details tab in sync
+      updateCashFlowDetails();
+    }
+
+    function updateCashFlowDetails() {
+      // Collect expenses
+      const expenses = {
+        councilTax:  numVal('exp-councilTax'),
+        utilities:   numVal('exp-utilities'),
+        insurance:   numVal('exp-insurance'),
+        maintenance: numVal('exp-maintenance'),
+        internet:    numVal('exp-internet'),
+        food:        numVal('exp-food'),
+        transport:   numVal('exp-transport'),
+        misc:        numVal('exp-misc'),
+      };
+
+      // Collect allocations
+      const allocs = {
+        emergency:    numVal('alloc-emergency'),
+        investments:  numVal('alloc-investments'),
+        overpayment:  numVal('alloc-overpayment'),
+      };
+
+      const totalExpenses  = Object.values(expenses).reduce((a, b) => a + b, 0);
+      const totalAllocs    = Object.values(allocs).reduce((a, b) => a + b, 0);
+      const totalIncome    = state.monthlyTakeHome + state.monthlyDividend;
+      const finalCashFlow  = totalIncome - state.monthlyRepayment - totalExpenses - totalAllocs;
+
+      // Summary banner
+      setText('cf-totalIncome',    fmt.currency(totalIncome));
+      setText('cf-totalExpenses',  fmt.currency(totalExpenses + totalAllocs));
+      setText('cf-mortgagePayment', fmt.currency(state.monthlyRepayment));
+      setText('cf-finalCashFlow',  fmt.currency(finalCashFlow));
+
+      // Breakdown lines
+      setText('cf-b-salary',      '+ ' + fmt.currency(state.monthlyTakeHome));
+      setText('cf-b-dividends',   '+ ' + fmt.currency(state.monthlyDividend));
+      setText('cf-b-mortgage',    '− ' + fmt.currency(state.monthlyRepayment));
+      setText('cf-b-councilTax',  '− ' + fmt.currency(expenses.councilTax));
+      setText('cf-b-utilities',   '− ' + fmt.currency(expenses.utilities));
+      setText('cf-b-insurance',   '− ' + fmt.currency(expenses.insurance));
+      setText('cf-b-maintenance', '− ' + fmt.currency(expenses.maintenance));
+      setText('cf-b-internet',    '− ' + fmt.currency(expenses.internet));
+      setText('cf-b-food',        '− ' + fmt.currency(expenses.food));
+      setText('cf-b-transport',   '− ' + fmt.currency(expenses.transport));
+      setText('cf-b-misc',        '− ' + fmt.currency(expenses.misc));
+      setText('cf-b-emergency',   '− ' + fmt.currency(allocs.emergency));
+      setText('cf-b-investments', '− ' + fmt.currency(allocs.investments));
+      setText('cf-b-overpayment', '− ' + fmt.currency(allocs.overpayment));
+      setText('cf-b-final',       fmt.currency(finalCashFlow));
+
+      // Colour final cash flow text
+      const finalEl = document.getElementById('cf-b-final');
+      if (finalEl) {
+        finalEl.className = finalCashFlow >= 0
+          ? 'font-bold text-xl text-green-600'
+          : 'font-bold text-xl text-red-500';
+      }
+
+      // Colour summary banner
+      colourCashFlowBanner('cf-summary-banner', 'cf-finalCashFlow', finalCashFlow);
+    }
+
+    // ─────────────────────────────────────────────
+    // EVENT HANDLERS
+    // ─────────────────────────────────────────────
+
+    function onSliderChange(key, rawValue) {
+      const value = parseFloat(rawValue);
+      state[key] = value;
+
+      // Update the display label for each slider
+      const displayEl = document.getElementById('display-' + key);
+      if (displayEl) {
+        if (key === 'mortgageRate' || key === 'dividendYield') {
+          displayEl.textContent = fmt.percent(value);
+        } else if (key === 'mortgageTerm') {
+          displayEl.textContent = value + ' yrs';
+        } else {
+          displayEl.textContent = fmt.currency(value);
+        }
+      }
+
+      updateMainResults();
+    }
+
+    function onExpenseChange() {
+      updateCashFlowDetails();
+    }
+
+    // ─────────────────────────────────────────────
+    // EXAMPLE SCENARIO LOADER
+    // ─────────────────────────────────────────────
+
+    function loadExample() {
+      const example = {
+        totalSavings:  120000,
+        housePrice:    350000,
+        deposit:       70000,
+        salary:        55000,
+        mortgageRate:  4.5,
+        mortgageTerm:  25,
+        dividendYield: 3.5,
+      };
+
+      Object.entries(example).forEach(([key, value]) => {
+        const slider = document.getElementById('slider-' + key);
+        if (slider) {
+          slider.value = value;
+          onSliderChange(key, value);
+        }
+      });
+
+      // Load example expenses
+      const exampleExpenses = {
+        'exp-councilTax':  150,
+        'exp-utilities':   120,
+        'exp-insurance':    80,
+        'exp-maintenance':  80,
+        'exp-internet':     45,
+        'exp-food':        350,
+        'exp-transport':   150,
+        'exp-misc':        200,
+        'alloc-emergency':  200,
+        'alloc-investments': 300,
+        'alloc-overpayment': 100,
+      };
+
+      Object.entries(exampleExpenses).forEach(([id, value]) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      });
+
+      onExpenseChange();
+    }
+
+    // ─────────────────────────────────────────────
+    // TAB SWITCHING
+    // ─────────────────────────────────────────────
+
+    function switchTab(tabName) {
+      // Hide all tab content
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      // Deactivate all tab buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-blue-600');
+        btn.classList.add('border-transparent', 'text-gray-500');
+      });
+
+      // Show selected
+      document.getElementById('tab-content-' + tabName).classList.add('active');
+      const activeBtn = document.getElementById('tab-' + tabName);
+      activeBtn.classList.add('border-blue-500', 'text-blue-600');
+      activeBtn.classList.remove('border-transparent', 'text-gray-500');
+
+      // Refresh details when switching to cash flow tab
+      if (tabName === 'cashflow') updateCashFlowDetails();
+    }
+
+    // ─────────────────────────────────────────────
+    // COLLAPSIBLE SECTIONS
+    // ─────────────────────────────────────────────
+
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      const iconId  = sectionId.replace('-section', '-toggle-icon');
+      const icon    = document.getElementById(iconId);
+
+      if (section.classList.contains('hidden')) {
+        section.classList.remove('hidden');
+        if (icon) icon.textContent = '▲';
+      } else {
+        section.classList.add('hidden');
+        if (icon) icon.textContent = '▼';
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // COLOUR HELPERS
+    // ─────────────────────────────────────────────
+
+    function colourCashFlowCard(cardId, textId, value) {
+      const card = document.getElementById(cardId);
+      const text = document.getElementById(textId);
+      if (!card || !text) return;
+
+      // Remove previous colour classes
+      card.className = card.className
+        .replace(/bg-\w+-\d+\s?/g, '')
+        .replace(/border-\w+-\d+\s?/g, '');
+
+      if (value > 0) {
+        card.classList.add('bg-green-50', 'border-green-100');
+        text.className = 'text-lg font-bold text-green-600';
+      } else if (value < 0) {
+        card.classList.add('bg-red-50', 'border-red-100');
+        text.className = 'text-lg font-bold text-red-500';
+      } else {
+        card.classList.add('bg-gray-50', 'border-gray-100');
+        text.className = 'text-lg font-bold text-gray-800';
+      }
+    }
+
+    function colourCashFlowBanner(bannerId, textId, value) {
+      const banner = document.getElementById(bannerId);
+      const text   = document.getElementById(textId);
+      if (!banner || !text) return;
+
+      banner.className = 'rounded-2xl p-5 border-2 transition-colors ';
+      if (value > 0) {
+        banner.className += 'bg-green-50 border-green-300';
+        text.className = 'text-xl font-bold text-green-600';
+      } else if (value < 0) {
+        banner.className += 'bg-red-50 border-red-300';
+        text.className = 'text-xl font-bold text-red-500';
+      } else {
+        banner.className += 'bg-gray-50 border-gray-200';
+        text.className = 'text-xl font-bold text-gray-800';
+      }
+    }
+
+    // ─────────────────────────────────────────────
+    // UTILITY HELPERS
+    // ─────────────────────────────────────────────
+
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = value;
+    }
+
+    function numVal(id) {
+      const el = document.getElementById(id);
+      return el ? Math.max(0, parseFloat(el.value) || 0) : 0;
+    }
+
+    // ─────────────────────────────────────────────
+    // INIT — run once on page load
+    // ─────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      updateMainResults();
+    });
+  </script>
+</body>
+</html>
