@@ -69,6 +69,11 @@
           onclick="switchTab('cashflow')"
           class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors"
         >Cash Flow Details</button>
+        <button
+          id="tab-growth"
+          onclick="switchTab('growth')"
+          class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition-colors"
+        >Investment Growth</button>
       </div>
     </div>
   </header>
@@ -577,6 +582,228 @@
     </div>
 
     <!-- ========================================================
+         TAB 3: INVESTMENT GROWTH
+    ======================================================== -->
+    <div id="tab-content-growth" class="tab-content space-y-6">
+
+      <!-- Parameters Card -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
+        <div class="flex items-center justify-between border-b pb-2">
+          <h2 class="text-base font-semibold text-gray-700">Growth Parameters</h2>
+          <button onclick="syncGrowthFromCalculator()"
+            class="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 rounded-lg px-3 py-1.5 transition-colors">
+            Sync from Calculator
+          </button>
+        </div>
+
+        <!-- Initial Investment -->
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Initial Investment</p>
+            <p class="text-xs text-gray-400">Capital available to invest</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-sm text-gray-400">£</span>
+            <input type="number" id="growth-initial" min="0" value="0" placeholder="0"
+              oninput="onGrowthChange()"
+              class="w-28 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+          </div>
+        </div>
+
+        <!-- Monthly Contribution -->
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Monthly Contribution</p>
+            <p class="text-xs text-gray-400">New investment each month</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-sm text-gray-400">£</span>
+            <input type="number" id="growth-monthly" min="0" value="0" placeholder="0"
+              oninput="onGrowthChange()"
+              class="w-28 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+          </div>
+        </div>
+
+        <!-- Projection Years -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">Projection Horizon</label>
+            <input type="text" id="display-growth-years" value="20 yrs"
+              onfocus="onGrowthDisplayFocus('growth-years', this)"
+              onblur="onGrowthDisplayBlur('growth-years', this, 1, 50)"
+              onkeydown="if(event.key==='Enter') this.blur()"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-20 cursor-text transition-colors" />
+          </div>
+          <input type="range" id="slider-growth-years" min="1" max="50" step="1" value="20"
+            oninput="onGrowthSliderChange('growth-years', this.value, 'yrs')" />
+          <div class="flex justify-between text-xs text-gray-400"><span>1 yr</span><span>50 yrs</span></div>
+        </div>
+
+        <!-- Base Annual Growth Rate -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center">
+            <label class="text-sm font-medium text-gray-600">Base Annual Growth Rate</label>
+            <input type="text" id="display-growth-rate" value="7.00%"
+              onfocus="onGrowthDisplayFocus('growth-rate', this)"
+              onblur="onGrowthDisplayBlur('growth-rate', this, -20, 30)"
+              onkeydown="if(event.key==='Enter') this.blur()"
+              class="text-sm font-bold text-blue-600 text-right bg-transparent outline-none border-b-2 border-transparent focus:border-blue-400 w-20 cursor-text transition-colors" />
+          </div>
+          <input type="range" id="slider-growth-rate" min="-20" max="30" step="0.5" value="7"
+            oninput="onGrowthSliderChange('growth-rate', this.value, '%')" />
+          <div class="flex justify-between text-xs text-gray-400"><span>−20%</span><span>30%</span></div>
+        </div>
+
+        <!-- Dividend Yield (read from main calculator) -->
+        <div class="flex items-center justify-between py-1 border-t border-gray-50">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Dividend Yield</p>
+            <p class="text-xs text-gray-400">Synced from Main Calculator</p>
+          </div>
+          <span id="growth-yield-display" class="text-sm font-bold text-blue-600">0.00%</span>
+        </div>
+
+        <!-- Reinvest Toggle -->
+        <div class="flex items-center justify-between pt-1 border-t border-gray-100">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Dividend Strategy</p>
+            <p class="text-xs text-gray-400">Reinvest or take as monthly income</p>
+          </div>
+          <div class="flex rounded-lg overflow-hidden border border-gray-200 text-xs font-medium">
+            <button id="btn-reinvest" onclick="setReinvest(true)"
+              class="px-3 py-2 bg-emerald-600 text-white transition-colors">Reinvest</button>
+            <button id="btn-income" onclick="setReinvest(false)"
+              class="px-3 py-2 bg-white text-gray-500 hover:bg-gray-50 transition-colors">Take Income</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stress Test — 3 Scenarios -->
+      <div class="space-y-3">
+        <div class="px-1">
+          <h2 class="text-base font-semibold text-gray-700">Stress Test</h2>
+          <p class="text-xs text-gray-400 mt-0.5">Fixed rates: Recession −2% / 2%, Bull Market 10% / 5%</p>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+
+          <!-- Bear / Recession -->
+          <div class="bg-red-50 rounded-2xl border border-red-200 p-4">
+            <div class="text-center mb-3">
+              <div class="text-2xl mb-1">📉</div>
+              <h3 class="text-xs font-bold text-red-700 uppercase tracking-wide">Recession</h3>
+              <p class="text-xs text-red-400 mt-0.5">−2% · 2%</p>
+            </div>
+            <div class="space-y-2 text-center">
+              <div><p class="text-xs text-red-400">Final Value</p>
+                <p id="stress-bear-value" class="text-sm font-bold text-red-700">£0</p></div>
+              <div><p class="text-xs text-red-400">Return</p>
+                <p id="stress-bear-return" class="text-xs font-semibold text-red-600">0%</p></div>
+              <div><p class="text-xs text-red-400">Mo. Income</p>
+                <p id="stress-bear-income" class="text-xs font-semibold text-red-600">£0</p></div>
+            </div>
+          </div>
+
+          <!-- Base -->
+          <div class="bg-blue-50 rounded-2xl border border-blue-200 p-4">
+            <div class="text-center mb-3">
+              <div class="text-2xl mb-1">📊</div>
+              <h3 class="text-xs font-bold text-blue-700 uppercase tracking-wide">Base Case</h3>
+              <p id="stress-base-rates" class="text-xs text-blue-400 mt-0.5">7% · 0%</p>
+            </div>
+            <div class="space-y-2 text-center">
+              <div><p class="text-xs text-blue-400">Final Value</p>
+                <p id="stress-base-value" class="text-sm font-bold text-blue-700">£0</p></div>
+              <div><p class="text-xs text-blue-400">Return</p>
+                <p id="stress-base-return" class="text-xs font-semibold text-blue-600">0%</p></div>
+              <div><p class="text-xs text-blue-400">Mo. Income</p>
+                <p id="stress-base-income" class="text-xs font-semibold text-blue-600">£0</p></div>
+            </div>
+          </div>
+
+          <!-- Bull -->
+          <div class="bg-green-50 rounded-2xl border border-green-200 p-4">
+            <div class="text-center mb-3">
+              <div class="text-2xl mb-1">📈</div>
+              <h3 class="text-xs font-bold text-green-700 uppercase tracking-wide">Bull Market</h3>
+              <p class="text-xs text-green-400 mt-0.5">10% · 5%</p>
+            </div>
+            <div class="space-y-2 text-center">
+              <div><p class="text-xs text-green-400">Final Value</p>
+                <p id="stress-bull-value" class="text-sm font-bold text-green-700">£0</p></div>
+              <div><p class="text-xs text-green-400">Return</p>
+                <p id="stress-bull-return" class="text-xs font-semibold text-green-600">0%</p></div>
+              <div><p class="text-xs text-green-400">Mo. Income</p>
+                <p id="stress-bull-income" class="text-xs font-semibold text-green-600">£0</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl border border-gray-100 px-4 py-3 flex items-center justify-between">
+          <span class="text-xs text-gray-500">Total capital invested over period</span>
+          <span id="stress-total-invested" class="text-sm font-bold text-gray-700">£0</span>
+        </div>
+      </div>
+
+      <!-- Reinvest vs Take Income Comparison (base case rates) -->
+      <div class="space-y-3">
+        <div class="px-1">
+          <h2 class="text-base font-semibold text-gray-700">Reinvest vs Take Income</h2>
+          <p class="text-xs text-gray-400 mt-0.5">Base case rates — what compounding gains you</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-emerald-50 rounded-2xl border border-emerald-200 p-4 text-center">
+            <div class="text-xl mb-1">♻️</div>
+            <h3 class="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-2">Full Reinvest</h3>
+            <p class="text-xs text-emerald-500">Final Portfolio</p>
+            <p id="cmp-reinvest-value" class="text-lg font-bold text-emerald-700 mt-0.5">£0</p>
+            <p class="text-xs text-emerald-400 mt-2">Dividends compounding into portfolio</p>
+          </div>
+          <div class="bg-violet-50 rounded-2xl border border-violet-200 p-4 text-center">
+            <div class="text-xl mb-1">💰</div>
+            <h3 class="text-xs font-bold text-violet-700 uppercase tracking-wide mb-2">Take Income</h3>
+            <p class="text-xs text-violet-500">Final Portfolio</p>
+            <p id="cmp-income-value" class="text-lg font-bold text-violet-700 mt-0.5">£0</p>
+            <p class="text-xs text-violet-400 mt-1">+ Total Dividends Received</p>
+            <p id="cmp-income-divs" class="text-sm font-bold text-violet-600">£0</p>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-gray-100 px-4 py-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-gray-500">Reinvest portfolio advantage</span>
+            <span id="cmp-advantage" class="font-bold text-gray-700">£0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Year-by-Year Projection Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center justify-between border-b pb-2 mb-4">
+          <h2 class="text-base font-semibold text-gray-700">Year-by-Year Projection</h2>
+          <span class="text-xs text-gray-400">Base case · selected strategy</span>
+        </div>
+        <div class="overflow-x-auto -mx-2 px-2">
+          <table class="w-full text-xs min-w-[380px]">
+            <thead>
+              <tr class="border-b border-gray-100 text-gray-400 font-medium">
+                <th class="text-left py-2">Yr</th>
+                <th class="text-right py-2">Portfolio</th>
+                <th class="text-right py-2">Invested</th>
+                <th class="text-right py-2">Gain</th>
+                <th class="text-right py-2">Return</th>
+                <th class="text-right py-2">Mo. Div</th>
+              </tr>
+            </thead>
+            <tbody id="growth-table-body" class="divide-y divide-gray-50">
+              <tr>
+                <td colspan="6" class="text-center py-6 text-gray-400">Set parameters above to see projection</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================================
          DISCLAIMER (shown on both tabs)
     ======================================================== -->
     <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5">
@@ -1025,8 +1252,18 @@
       activeBtn.classList.add('border-blue-500', 'text-blue-600');
       activeBtn.classList.remove('border-transparent', 'text-gray-500');
 
-      // Refresh details when switching to cash flow tab
+      // Refresh details when switching tabs
       if (tabName === 'cashflow') updateCashFlowDetails();
+      if (tabName === 'growth') {
+        growthState.dividendYield = state.dividendYield;
+        setText('growth-yield-display', fmt.percent(growthState.dividendYield));
+        if (!growthState._initialized) {
+          syncGrowthFromCalculator();
+          growthState._initialized = true;
+        } else {
+          updateGrowthProjection();
+        }
+      }
     }
 
     // ─────────────────────────────────────────────
@@ -1149,6 +1386,13 @@
             cashReserve:  getCustomItemsData('custom-items-cash-reserve'),
             monthlyAlloc: getCustomItemsData('custom-items-monthly-alloc'),
           },
+          growth: {
+            initial:    parseFloat(document.getElementById('growth-initial')?.value) || 0,
+            monthly:    parseFloat(document.getElementById('growth-monthly')?.value) || 0,
+            years:      growthState.years,
+            growthRate: growthState.growthRate,
+            reinvest:   growthState.reinvest,
+          },
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         showSaveIndicator();
@@ -1201,6 +1445,28 @@
           restoreCustomItems('custom-items-cash-reserve', 'fixed',         data.customItems.cashReserve  || []);
           restoreCustomItems('custom-items-monthly-alloc','monthly-alloc', data.customItems.monthlyAlloc || []);
         }
+
+        // Restore growth tab state
+        if (data.growth) {
+          const g = data.growth;
+          const iEl = document.getElementById('growth-initial');
+          const mEl = document.getElementById('growth-monthly');
+          if (iEl) iEl.value = g.initial || 0;
+          if (mEl) mEl.value = g.monthly || 0;
+          growthState.years      = g.years      !== undefined ? g.years      : 20;
+          growthState.growthRate = g.growthRate  !== undefined ? g.growthRate  : 7;
+          growthState.reinvest   = g.reinvest    !== false;
+          const ysEl = document.getElementById('slider-growth-years');
+          const grEl = document.getElementById('slider-growth-rate');
+          const ydEl = document.getElementById('display-growth-years');
+          const rdEl = document.getElementById('display-growth-rate');
+          if (ysEl) ysEl.value = growthState.years;
+          if (grEl) grEl.value = growthState.growthRate;
+          if (ydEl) ydEl.value = growthState.years + ' yrs';
+          if (rdEl) rdEl.value = fmt.percent(growthState.growthRate);
+          setReinvest(growthState.reinvest);
+          growthState._initialized = true;
+        }
       } catch (_) {
         // Corrupted storage — ignore and start fresh
       }
@@ -1245,6 +1511,197 @@
       el.style.opacity = '1';
       clearTimeout(el._hideTimer);
       el._hideTimer = setTimeout(() => { el.style.opacity = '0'; }, 1500);
+    }
+
+    // ─────────────────────────────────────────────
+    // INVESTMENT GROWTH PROJECTOR
+    // ─────────────────────────────────────────────
+
+    const growthState = {
+      initial: 0, monthly: 0, years: 20, growthRate: 7, dividendYield: 0,
+      reinvest: true, _initialized: false,
+    };
+
+    function syncGrowthFromCalculator() {
+      const iEl = document.getElementById('growth-initial');
+      const mEl = document.getElementById('growth-monthly');
+      if (iEl) iEl.value = Math.round(state.remainingInvestment);
+      if (mEl) mEl.value = Math.round(numVal('alloc-investments'));
+      growthState.initial       = state.remainingInvestment;
+      growthState.monthly       = numVal('alloc-investments');
+      growthState.dividendYield = state.dividendYield;
+      setText('growth-yield-display', fmt.percent(growthState.dividendYield));
+      onGrowthChange();
+    }
+
+    function onGrowthChange() {
+      growthState.initial       = Math.max(0, parseFloat(document.getElementById('growth-initial')?.value) || 0);
+      growthState.monthly       = Math.max(0, parseFloat(document.getElementById('growth-monthly')?.value) || 0);
+      growthState.dividendYield = state.dividendYield;
+      updateGrowthProjection();
+      scheduleSave();
+    }
+
+    function onGrowthSliderChange(key, rawValue, suffix) {
+      const value = parseFloat(rawValue);
+      const displayEl = document.getElementById('display-' + key);
+      if (displayEl && document.activeElement !== displayEl) {
+        displayEl.value = suffix === '%' ? fmt.percent(value) : value + ' ' + suffix;
+      }
+      if (key === 'growth-years') growthState.years      = Math.round(value);
+      if (key === 'growth-rate')  growthState.growthRate = value;
+      onGrowthChange();
+    }
+
+    function onGrowthDisplayFocus(key, el) {
+      el.value = el.value.replace(/[%,£]/g, '').replace(/\s*yrs?\s*/i, '').trim();
+      el.select();
+    }
+
+    function onGrowthDisplayBlur(key, el, min, max) {
+      let value = Math.min(Math.max(parseFloat(el.value) || 0, min), max);
+      const slider = document.getElementById('slider-' + key);
+      if (slider) slider.value = value;
+      if (key === 'growth-years') { growthState.years      = Math.round(value); el.value = value + ' yrs'; }
+      if (key === 'growth-rate')  { growthState.growthRate = value;              el.value = fmt.percent(value); }
+      onGrowthChange();
+    }
+
+    function setReinvest(reinvest) {
+      growthState.reinvest = reinvest;
+      const r = document.getElementById('btn-reinvest');
+      const i = document.getElementById('btn-income');
+      if (r) r.className = reinvest
+        ? 'px-3 py-2 bg-emerald-600 text-white transition-colors'
+        : 'px-3 py-2 bg-white text-gray-500 hover:bg-gray-50 transition-colors';
+      if (i) i.className = reinvest
+        ? 'px-3 py-2 bg-white text-gray-500 hover:bg-gray-50 transition-colors'
+        : 'px-3 py-2 bg-violet-600 text-white transition-colors';
+      onGrowthChange();
+    }
+
+    function updateGrowthProjection() {
+      const { initial, monthly, years, growthRate, dividendYield, reinvest } = growthState;
+
+      const projBear = runProjection(initial, monthly, -2,         2,            years, reinvest);
+      const projBase = runProjection(initial, monthly, growthRate, dividendYield, years, reinvest);
+      const projBull = runProjection(initial, monthly, 10,         5,            years, reinvest);
+
+      const last = (rows) => rows[rows.length - 1] || { portfolio: 0, totalContributed: 0, growthPct: 0, monthlyDivIncome: 0 };
+
+      // Stress test cards
+      renderStressCard('bear', last(projBear));
+      renderStressCard('base', last(projBase));
+      renderStressCard('bull', last(projBull));
+      setText('stress-total-invested', fmt.currency(last(projBase).totalContributed));
+      setText('stress-base-rates', `${growthRate >= 0 ? '+' : ''}${parseFloat(growthRate).toFixed(1)}% · ${parseFloat(dividendYield).toFixed(1)}%`);
+
+      // Reinvest vs Income comparison (always base rates)
+      const baseReinvest = runProjection(initial, monthly, growthRate, dividendYield, years, true);
+      const baseIncome   = runProjection(initial, monthly, growthRate, dividendYield, years, false);
+      const fR = last(baseReinvest), fI = last(baseIncome);
+      setText('cmp-reinvest-value', fmt.currency(fR.portfolio));
+      setText('cmp-income-value',   fmt.currency(fI.portfolio));
+      setText('cmp-income-divs',    '+ ' + fmt.currency(fI.cumulativeDividendIncome) + ' divs');
+      const adv = fR.portfolio - fI.portfolio;
+      const advEl = document.getElementById('cmp-advantage');
+      if (advEl) {
+        advEl.textContent = (adv >= 0 ? '+' : '') + fmt.currency(adv);
+        advEl.className = 'font-bold ' + (adv >= 0 ? 'text-emerald-600' : 'text-red-500');
+      }
+
+      // Year-by-year table for base case
+      renderGrowthTable(projBase);
+    }
+
+    function renderStressCard(id, row) {
+      const invested = row.totalContributed;
+      const pct = invested > 0 ? ((row.portfolio - invested) / invested * 100) : 0;
+      const sign = pct >= 0 ? '+' : '';
+      setText(`stress-${id}-value`,  fmt.currency(row.portfolio));
+      setText(`stress-${id}-return`, sign + pct.toFixed(1) + '%');
+      setText(`stress-${id}-income`, fmt.currency(row.monthlyDivIncome));
+    }
+
+    function renderGrowthTable(rows) {
+      const tbody = document.getElementById('growth-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!rows || rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-400">Set parameters above</td></tr>';
+        return;
+      }
+
+      // Show all years ≤ 20; for longer horizons show milestones
+      const milestones = new Set([1, 2, 3, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, rows.length]);
+      const display = rows.length <= 20 ? rows : rows.filter(r => milestones.has(r.year));
+
+      display.forEach(row => {
+        const gSign  = row.growth >= 0 ? '+' : '';
+        const gColor = row.growth >= 0 ? 'text-green-600' : 'text-red-500';
+        const pColor = row.growthPct >= 0 ? 'text-green-600' : 'text-red-500';
+        const pSign  = row.growthPct >= 0 ? '+' : '';
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50';
+        tr.innerHTML = `
+          <td class="py-2 font-medium text-gray-600">${row.year}</td>
+          <td class="py-2 text-right font-bold text-gray-800">${fmtK(row.portfolio)}</td>
+          <td class="py-2 text-right text-gray-500">${fmtK(row.totalContributed)}</td>
+          <td class="py-2 text-right font-medium ${gColor}">${gSign}${fmtK(row.growth)}</td>
+          <td class="py-2 text-right font-medium ${pColor}">${pSign}${row.growthPct.toFixed(1)}%</td>
+          <td class="py-2 text-right text-gray-600">${fmtK(row.monthlyDivIncome)}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Compact currency for table cells (£120k, £1.2M)
+    function fmtK(v) {
+      if (v >= 1e6)  return '£' + (v / 1e6).toFixed(2) + 'M';
+      if (v >= 1e3)  return '£' + (v / 1e3).toFixed(0) + 'k';
+      if (v <= -1e6) return '−£' + (Math.abs(v) / 1e6).toFixed(2) + 'M';
+      if (v <= -1e3) return '−£' + (Math.abs(v) / 1e3).toFixed(0) + 'k';
+      return (v < 0 ? '−' : '') + '£' + Math.abs(Math.round(v));
+    }
+
+    // Core month-by-month compound growth engine
+    function runProjection(initialAmount, monthlyContrib, annualGrowthPct, annualYieldPct, years, reinvest) {
+      const rows = [];
+      let portfolio          = Math.max(0, initialAmount);
+      let totalContributed   = initialAmount;
+      let cumulativeDivs     = 0;
+      const mGrowth = annualGrowthPct / 100 / 12;
+      const mYield  = Math.max(0, annualYieldPct) / 100 / 12;
+
+      for (let yr = 1; yr <= years; yr++) {
+        let yearDiv = 0;
+        for (let m = 0; m < 12; m++) {
+          const g = portfolio * mGrowth;
+          const d = portfolio * mYield;
+          if (reinvest) {
+            portfolio = Math.max(0, portfolio + g + d + monthlyContrib);
+          } else {
+            portfolio = Math.max(0, portfolio + g + monthlyContrib);
+            yearDiv  += Math.max(0, d);
+          }
+          totalContributed += monthlyContrib;
+        }
+        cumulativeDivs += yearDiv;
+        const growth    = portfolio - totalContributed;
+        const growthPct = totalContributed > 0 ? (growth / totalContributed) * 100 : 0;
+        rows.push({
+          year: yr,
+          portfolio: Math.max(0, portfolio),
+          totalContributed,
+          growth,
+          growthPct,
+          monthlyDivIncome: reinvest
+            ? Math.max(0, portfolio * (annualYieldPct / 100) / 12)
+            : yearDiv / 12,
+          cumulativeDividendIncome: cumulativeDivs,
+        });
+      }
+      return rows;
     }
 
     // ─────────────────────────────────────────────
