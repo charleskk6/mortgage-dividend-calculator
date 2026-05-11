@@ -696,9 +696,12 @@
     function calculate() {
       const { totalSavings, housePrice, deposit, salary, mortgageRate, mortgageTerm, dividendYield } = state;
 
+      // Cash Reserve is kept in cash and not invested — deduct it from investable capital
+      const fixedReserve = numVal('alloc-emergency') + sumCustomContainer('custom-items-cash-reserve');
+
       state.mortgageAmount       = Math.max(0, housePrice - deposit);
       state.monthlyRepayment     = calcMonthlyRepayment(state.mortgageAmount, mortgageRate, mortgageTerm);
-      state.remainingInvestment  = Math.max(0, totalSavings - deposit);
+      state.remainingInvestment  = Math.max(0, totalSavings - deposit - fixedReserve);
       state.monthlyDividend      = calcMonthlyDividend(state.remainingInvestment, dividendYield);
       state.monthlyTakeHome      = calcMonthlyTakeHome(salary);
       state.netCashFlow          = state.monthlyTakeHome + state.monthlyDividend - state.monthlyRepayment;
@@ -953,7 +956,7 @@
     }
 
     function onExpenseChange() {
-      updateCashFlowDetails();
+      updateMainResults(); // recalculates investment/dividend when Cash Reserve changes
       scheduleSave();
     }
 
