@@ -413,40 +413,51 @@
                 class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
             </div>
           </div>
+          <div id="custom-items-expenses" class="space-y-2"></div>
+          <button onclick="addCustomItem('custom-items-expenses', 'expense')"
+            class="w-full text-xs text-gray-400 hover:text-gray-600 border border-dashed border-gray-200 hover:border-gray-300 rounded-lg py-2 transition-colors">
+            + Add item
+          </button>
         </div>
       </div>
 
-      <!-- Asset Allocation -->
-      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-5">
-        <h2 class="text-base font-semibold text-gray-700 border-b pb-2">Asset Allocation</h2>
-
-        <!-- Fixed — untouched reserves, not deducted from monthly cash flow -->
-        <div class="space-y-3">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs font-semibold uppercase tracking-wide text-slate-500">Fixed</span>
-            <span class="flex-1 border-t border-dashed border-slate-200"></span>
-            <span class="text-xs text-slate-400">untouched reserve</span>
+      <!-- Cash Reserve — kept in cash, NOT invested, NOT deducted from monthly cash flow -->
+      <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h2 class="text-base font-semibold text-slate-700">Cash Reserve</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Kept in cash — not invested. Not deducted from monthly cash flow.</p>
           </div>
-          <p class="text-xs text-gray-400 -mt-1">Lump sum set aside and not touched — does not affect monthly cash flow.</p>
+          <span class="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-medium shrink-0 ml-2">Fixed</span>
+        </div>
+        <div class="space-y-3">
           <div class="flex items-center justify-between">
-            <label class="text-sm text-gray-600 flex-1">Emergency Cash</label>
+            <label class="text-sm text-slate-600 flex-1">Emergency Cash</label>
             <div class="flex items-center">
-              <span class="text-sm text-gray-400 mr-1">£</span>
+              <span class="text-sm text-slate-400 mr-1">£</span>
               <input type="number" id="alloc-emergency" min="0" value="0" placeholder="0"
                 oninput="onExpenseChange()"
-                class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+                class="w-24 border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-slate-400 focus:border-transparent outline-none" />
             </div>
           </div>
+          <div id="custom-items-cash-reserve" class="space-y-2"></div>
+          <button onclick="addCustomItem('custom-items-cash-reserve', 'fixed')"
+            class="w-full text-xs text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 hover:border-slate-400 rounded-lg py-2 transition-colors">
+            + Add item
+          </button>
         </div>
+      </div>
 
-        <!-- Monthly — regular contributions deducted from cash flow -->
-        <div class="space-y-3">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="text-xs font-semibold uppercase tracking-wide text-blue-500">Monthly</span>
-            <span class="flex-1 border-t border-dashed border-blue-100"></span>
-            <span class="text-xs text-blue-400">deducted each month</span>
+      <!-- Monthly Allocations — regular contributions deducted from cash flow -->
+      <div class="bg-white rounded-2xl shadow-sm border border-blue-100 p-5">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <h2 class="text-base font-semibold text-blue-700">Monthly Allocations</h2>
+            <p class="text-xs text-gray-400 mt-0.5">Regular monthly contributions — subtracted from cash flow each month.</p>
           </div>
-          <p class="text-xs text-gray-400 -mt-1">Regular monthly contributions — subtracted from your cash flow.</p>
+          <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-medium shrink-0 ml-2">Monthly</span>
+        </div>
+        <div class="space-y-3">
           <div class="flex items-center justify-between">
             <label class="text-sm text-gray-600 flex-1">Other Investments</label>
             <div class="flex items-center">
@@ -465,6 +476,11 @@
                 class="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-right focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
             </div>
           </div>
+          <div id="custom-items-monthly-alloc" class="space-y-2"></div>
+          <button onclick="addCustomItem('custom-items-monthly-alloc', 'monthly-alloc')"
+            class="w-full text-xs text-blue-400 hover:text-blue-600 border border-dashed border-blue-200 hover:border-blue-300 rounded-lg py-2 transition-colors">
+            + Add item
+          </button>
         </div>
       </div>
 
@@ -517,6 +533,7 @@
             <span class="text-gray-500">Family / Miscellaneous</span>
             <span id="cf-b-misc" class="font-medium text-red-500">− £0</span>
           </div>
+          <div id="cf-bd-custom-expenses"></div>
           <div class="border-t border-dashed my-1"></div>
           <!-- Monthly allocations — deducted -->
           <div class="flex items-center gap-2 py-1">
@@ -531,22 +548,24 @@
             <span class="text-gray-500">Mortgage Overpayment</span>
             <span id="cf-b-overpayment" class="font-medium text-orange-500">− £0</span>
           </div>
+          <div id="cf-bd-custom-monthly-alloc"></div>
           <div class="border-t border-gray-300 my-2"></div>
           <div class="flex justify-between py-1 font-bold text-base">
             <span class="text-gray-700">Final Cash Flow</span>
             <span id="cf-b-final" class="text-gray-800">£0</span>
           </div>
-          <!-- Fixed allocation — informational only -->
+          <!-- Cash Reserve — informational only, not deducted -->
           <div class="mt-3 pt-3 border-t border-dashed border-slate-200">
             <div class="flex items-center gap-2 mb-2">
-              <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">Fixed Reserve</span>
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-400">Cash Reserve</span>
               <span class="flex-1 border-t border-dashed border-slate-200"></span>
               <span class="text-xs text-slate-400">not deducted</span>
             </div>
             <div class="flex justify-between py-1">
-              <span class="text-gray-400 text-sm">Emergency Cash</span>
+              <span class="text-slate-400 text-sm">Emergency Cash</span>
               <span id="cf-b-emergency" class="text-sm font-medium text-slate-500">£0 set aside</span>
             </div>
+            <div id="cf-bd-custom-cash-reserve"></div>
           </div>
         </div>
       </div>
@@ -712,7 +731,6 @@
     }
 
     function updateCashFlowDetails() {
-      // Collect expenses
       const expenses = {
         councilTax:  numVal('exp-councilTax'),
         utilities:   numVal('exp-utilities'),
@@ -724,29 +742,32 @@
         misc:        numVal('exp-misc'),
       };
 
-      // Fixed allocations — untouched reserves, NOT deducted from monthly cash flow
-      const fixedAllocs = {
+      // Fixed cash reserve — NOT deducted from monthly cash flow
+      const fixedReserve = {
         emergency: numVal('alloc-emergency'),
       };
 
-      // Monthly allocations — regular contributions, deducted from cash flow
+      // Monthly allocations — deducted from cash flow
       const monthlyAllocs = {
         investments: numVal('alloc-investments'),
         overpayment: numVal('alloc-overpayment'),
       };
 
-      const totalExpenses     = Object.values(expenses).reduce((a, b) => a + b, 0);
-      const totalMonthlyAllocs = Object.values(monthlyAllocs).reduce((a, b) => a + b, 0);
-      const totalIncome       = state.monthlyTakeHome + state.monthlyDividend;
-      const finalCashFlow     = totalIncome - state.monthlyRepayment - totalExpenses - totalMonthlyAllocs;
+      const customExpenses     = sumCustomContainer('custom-items-expenses');
+      const customMonthlyAlloc = sumCustomContainer('custom-items-monthly-alloc');
 
-      // Summary banner (total expenses excludes fixed reserves)
-      setText('cf-totalIncome',    fmt.currency(totalIncome));
-      setText('cf-totalExpenses',  fmt.currency(totalExpenses + totalMonthlyAllocs));
+      const totalExpenses      = Object.values(expenses).reduce((a, b) => a + b, 0) + customExpenses;
+      const totalMonthlyAllocs = Object.values(monthlyAllocs).reduce((a, b) => a + b, 0) + customMonthlyAlloc;
+      const totalIncome        = state.monthlyTakeHome + state.monthlyDividend;
+      const finalCashFlow      = totalIncome - state.monthlyRepayment - totalExpenses - totalMonthlyAllocs;
+
+      // Summary banner
+      setText('cf-totalIncome',     fmt.currency(totalIncome));
+      setText('cf-totalExpenses',   fmt.currency(totalExpenses + totalMonthlyAllocs));
       setText('cf-mortgagePayment', fmt.currency(state.monthlyRepayment));
-      setText('cf-finalCashFlow',  fmt.currency(finalCashFlow));
+      setText('cf-finalCashFlow',   fmt.currency(finalCashFlow));
 
-      // Breakdown lines
+      // Static breakdown lines
       setText('cf-b-salary',      '+ ' + fmt.currency(state.monthlyTakeHome));
       setText('cf-b-dividends',   '+ ' + fmt.currency(state.monthlyDividend));
       setText('cf-b-mortgage',    '− ' + fmt.currency(state.monthlyRepayment));
@@ -761,8 +782,12 @@
       setText('cf-b-investments', '− ' + fmt.currency(monthlyAllocs.investments));
       setText('cf-b-overpayment', '− ' + fmt.currency(monthlyAllocs.overpayment));
       setText('cf-b-final',       fmt.currency(finalCashFlow));
-      // Fixed reserve — informational display only
-      setText('cf-b-emergency',   fmt.currency(fixedAllocs.emergency) + ' set aside');
+      setText('cf-b-emergency',   fmt.currency(fixedReserve.emergency) + ' set aside');
+
+      // Dynamic custom item rows in breakdown
+      renderCustomBreakdown('cf-bd-custom-expenses',     'custom-items-expenses',     '− ', 'font-medium text-red-500');
+      renderCustomBreakdown('cf-bd-custom-monthly-alloc','custom-items-monthly-alloc','− ', 'font-medium text-orange-500');
+      renderCustomBreakdown('cf-bd-custom-cash-reserve', 'custom-items-cash-reserve', '',  'text-sm font-medium text-slate-500', true);
 
       // Colour final cash flow text
       const finalEl = document.getElementById('cf-b-final');
@@ -774,6 +799,91 @@
 
       // Colour summary banner
       colourCashFlowBanner('cf-summary-banner', 'cf-finalCashFlow', finalCashFlow);
+    }
+
+    // ─────────────────────────────────────────────
+    // CUSTOM ITEM HELPERS
+    // ─────────────────────────────────────────────
+
+    let _customItemCounter = 0;
+
+    function addCustomItem(containerId, type) {
+      _customItemCounter++;
+      const rowId = 'custom-row-' + _customItemCounter;
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const isFixed = type === 'fixed';
+      const borderColor = isFixed ? 'border-slate-200' : 'border-gray-200';
+      const focusRing   = isFixed ? 'focus:ring-slate-400' : 'focus:ring-blue-500';
+
+      const row = document.createElement('div');
+      row.id = rowId;
+      row.className = 'custom-item-row flex items-center gap-2';
+      row.innerHTML = `
+        <input type="text"
+          placeholder="Item name"
+          class="custom-item-name flex-1 min-w-0 border ${borderColor} rounded-lg px-2 py-1.5 text-sm ${focusRing} focus:border-transparent outline-none"
+          oninput="onExpenseChange()" />
+        <span class="text-sm text-gray-400 shrink-0">£</span>
+        <input type="number" min="0" value="0" placeholder="0"
+          class="custom-item-amount w-20 border ${borderColor} rounded-lg px-2 py-1.5 text-sm text-right ${focusRing} focus:border-transparent outline-none shrink-0"
+          oninput="onExpenseChange()" />
+        <button onclick="removeCustomItem('${rowId}')"
+          class="shrink-0 w-6 h-6 flex items-center justify-center text-gray-300 hover:text-red-400 text-xl leading-none transition-colors" title="Remove">
+          &times;
+        </button>
+      `;
+      container.appendChild(row);
+      onExpenseChange();
+    }
+
+    function removeCustomItem(rowId) {
+      const row = document.getElementById(rowId);
+      if (row) row.remove();
+      onExpenseChange();
+    }
+
+    // Sum all amount inputs inside a custom items container
+    function sumCustomContainer(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return 0;
+      let total = 0;
+      container.querySelectorAll('.custom-item-amount').forEach(inp => {
+        total += Math.max(0, parseFloat(inp.value) || 0);
+      });
+      return total;
+    }
+
+    // Rebuild dynamic breakdown rows from a custom items container
+    function renderCustomBreakdown(breakdownId, sourceId, prefix, valueClass, isFixed) {
+      const bd = document.getElementById(breakdownId);
+      if (!bd) return;
+      bd.innerHTML = '';
+      const src = document.getElementById(sourceId);
+      if (!src) return;
+
+      src.querySelectorAll('.custom-item-row').forEach(row => {
+        const nameEl   = row.querySelector('.custom-item-name');
+        const amountEl = row.querySelector('.custom-item-amount');
+        const name   = (nameEl && nameEl.value.trim()) || 'Custom item';
+        const amount = Math.max(0, parseFloat(amountEl && amountEl.value) || 0);
+        const displayVal = isFixed
+          ? fmt.currency(amount) + ' set aside'
+          : prefix + fmt.currency(amount);
+
+        const div = document.createElement('div');
+        div.className = 'flex justify-between py-1';
+        div.innerHTML = `
+          <span class="${isFixed ? 'text-slate-400' : 'text-gray-500'} text-sm">${escHtml(name)}</span>
+          <span class="${valueClass}">${displayVal}</span>
+        `;
+        bd.appendChild(div);
+      });
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     // ─────────────────────────────────────────────
